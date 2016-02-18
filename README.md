@@ -6,13 +6,6 @@ VUE4j is A Python-based data extraction tool & Neo4j integration for [VUE](http:
 
 Using VUE4j, node and link data from .vue source files can be extracted and translated into Neo4j instances, allowing for the handling of VUE maps as graph databases (and vice versa).
 
-## Install
-
-To get started with VUE4j, simply add the package with your preferred installer:
-
-```pip install vue4j```
-
-```easy_install vue4j```
 
 ## Usage
 
