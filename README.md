@@ -8,13 +8,15 @@ Using VUE4j, node and link data from .vue source files can be extracted and tran
 
 ## Install
 
-To get started with VUE4j, simply add the package with your preferred installer:
+To get started with VUE4j, add the package with your preferred installer:
 
-```pip install vue4j```
+`pip install vue4j`
 
 or
 
-```easy_install vue4j```
+`easy_install vue4j`
+
+or [grab it off of PyPi](https://pypi.python.org/pypi/vue4j/0.1).
 
 ## Usage
 
