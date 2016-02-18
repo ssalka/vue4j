@@ -2,7 +2,7 @@
 VUE4j
 =====
 
-VUE4j is A Python-based data extraction tool for [VUE](http://vue.tufts.edu/), a graph/concept-mapping interface.
+VUE4j is A Python-based data extraction tool & Neo4j integration for [VUE](http://vue.tufts.edu/), a graph/concept-mapping interface.
 
 Using VUE4j, node and link data from .vue source files can be extracted and translated into Neo4j instances, allowing for the handling of VUE maps as graph databases (and vice versa).
 
