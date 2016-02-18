@@ -1,25 +1,27 @@
 =====
-PyVUE
+VUE4j
 =====
 
-A minimal graph extractor and Neo4j import tool for [VUE](http://vue.tufts.edu/). Using PyVUE, any VUE concept map can be easily translated into a Neo4j graph instance, allowing for the handling of VUE maps in a more data-centric fashion.
+VUE4j is A Python-based data extraction tool for [VUE](http://vue.tufts.edu/), a graph/concept-mapping interface.
+
+Using VUE4j, node and link data from .vue source files can be extracted and translated into Neo4j instances, allowing for the handling of VUE maps as graph databases (and vice versa).
 
 ## Install
 
-To get started with PyVUE, simply add the package with your preferred installer:
+To get started with VUE4j, simply add the package with your preferred installer:
 
-```pip install pyvue```
+```pip install vue4j```
 
-```easy_install pyvue```
+```easy_install vue4j```
 
 ## Usage
 
-PyVUE implements a customized file reader, which must be passed a valid .vue file:
+VUE4j implements a customized file reader, which must be passed a valid .vue file:
 
 ```
-from pyvue import VUE
+from vue4j import VUE4j
 
-vue = VUE('your_vue_map.vue')
+vue = VUE4j('your_vue_map.vue')
 ```
 
 Instances of the VUE class make it easy to list nodes & links in any VUE map:
@@ -34,20 +36,22 @@ edge_table = vue.links(verbose=True)
 print(edge_table)
 ```
 
-PyVUE can also insert graph data into Neo4j:
+VUE4j can also insert graph data into Neo4j:
 
 ```
 from py2neo import authenticate
 
 config = {
     'host_port': 'localhost:7474',
-    'user_name': 'neo4j',
-    'password': 'neo4j'
+    'user_name': 'your_username', # default: neo4j
+    'password': 'your_password' # default: neo4j
 }
 
 authenticate(**config)
 
-graph = vue.to_neo4j(confirm_success=True)
+graph = vue.to_neo4j()
+
+assert vue.confirm_transaction(graph)
 ```
 
 If starting from a fresh Neo4j instance, confirm the VUE data import via `vue.confirm_transaction(G)`.
@@ -60,8 +64,8 @@ Initial release. Known bugs: does not yet work for resource-heavy VUE maps (e.g.
 
 ## Credits
 
-PyVUE was written by [Steven Salka](http://ssalka.io)
+VUE4j was written by [Steven Salka](http://ssalka.io)
 
 ## License
 
-PyVUE is published under the [MIT License](https://github.com/ssalka/pyvue/blob/master/LICENSE)
+VUE4j is published under the [MIT License](https://github.com/ssalka/VUE4j/blob/master/LICENSE)
