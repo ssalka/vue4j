@@ -131,10 +131,12 @@ class ElementParser:
 
     def handle_as_link(self, element, **kwargs):
         """
+        Handles an element identified as a link, extracts relevant
+        data and inserts into current link dictionary.
 
-        :param element:
-        :param kwargs:
-        :return:
+        :param element: element to handle
+        :param kwargs: sets V, E, E_res
+        :return: updated sets V, E, E_res
         """
         ID = int(element.get('ID'))
         V = kwargs['V']
@@ -160,20 +162,24 @@ class ElementParser:
                     'type': 'Link: ' + link_type
                 }
             }
-        else: # Edge is referencing downstream XML element - save for use in next iteration
+        else:
+            # Edge is referencing downstream XML element
+            # Retry in next iteration
             E_res[ID] = element
 
         return V, E, E_res
 
     def get_object_types(self,iterable):
+        """ Returns object property types """
         return [obj['properties']['type'] for obj in iterable]
 
     def link_endpoint_tags(self, element, V, E):
         """
+        Gets 2 child tags corresponding to a link's endpoints
 
-        :param element:
-        :param V:
-        :param E:
+        :param element: parent element of endpoint tags
+        :param V: current set of nodes
+        :param E:current set of links
         :return:
         """
         endpoints = []
@@ -183,16 +189,13 @@ class ElementParser:
             tag_set = V if tag_type == 'node' else E
             graph_element_ID = int(tag.text)
             try:
-                endpoint = tag_set[graph_element_ID] # V[153], E[12], etc.
+                endpoint = tag_set[graph_element_ID]
                 if endpoint is None:
-                    raise ValueError('Endpoint is none!')
+                    raise ValueError('Endpoint is none')
                 endpoints.append(endpoint)
             except KeyError:
                 return False
         return endpoints
-
-    def get_unresolved_links(self,links):
-        return [int(element.get('ID')) for element in links.values()]
 
     handler = {
         'node': handle_as_node,
@@ -256,7 +259,7 @@ class VUE4j:
                 start, end = edge['start_node']['label'], edge['end_node']['label']
                 start = start[:max_length] + (start[max_length:] and '...')
                 end = end[:max_length] + (end[max_length:] and '...')
-                arrow_str = self.verbose_rel_repr(edge)
+                arrow_str = self.rel_arrow_str(edge)
                 record = (id,start,arrow_str,end) if verbose else (start, end)
                 edge_list.append(record)
             self._links = tabulate(edge_list,headers=('Link ID','Node 1','Relationship','Node 2'))
@@ -283,20 +286,32 @@ class VUE4j:
                     data = line + f.read()
                     return etree.fromstring(data)
 
-    def verbose_rel_repr(self,edge):
-        rel = edge['label']
+    def rel_arrow_str(self, link):
+        """
+        Consructs a string representation of an arrow/link,
+        used in the verbose printing of an edge table
+
+        :param link: Link to get representation of
+        :return: string representation of link
+        """
+        rel = link['label']
         arrow_tag = '[{}]'.format(rel).replace('[]','')
-        directed = edge['properties']['directed']
+        directed = link['properties']['directed']
         left_arrow = ' <' if directed == 'bidirectional' else ''
         right_arrow = '> ' if directed != 'undirected' else ''
 
         return '--'.join([left_arrow,arrow_tag,right_arrow])
 
     def get_endpoints(self,link):
-        """ Returns the  """
+        """ Returns the endpoint IDs of a link """
         return (link[key+'_node']['properties']['VUE_ID'] for key in ['start','end'])
 
-    def get_compatible_links(self, warn=False):
+    @property
+    def neo4j_compatible_links(self):
+        return self._compatible_links
+
+    @neo4j_compatible_links.setter
+    def neo4j_compatible_links(self,links):
         """
         Filters out VUE links that have other links as endpoints,
         as this feature is not currently supported by Neo4j
@@ -304,19 +319,18 @@ class VUE4j:
         :param warn: If true, issues a warning when any incompatible links are found
         :return: dict of compatible links by ID
         """
-        compatible_links = {
-            id: edge for (id,edge) in self.E.items()
+        self._compatible_links =  {
+            id: edge for (id,edge) in links.items()
             if 'Link' not in edge['properties']['type'][6:]
         }
-        diff = set(self.E.keys()) - set(compatible_links.keys())
-        if diff and warn:
+        diff = set(links.keys()) - set(self._compatible_links.keys())
+        if diff:
             warning = 'Warning: file \'%s\' contains link types incompatible with Neo4j'
             print(warning % self.file)
-        return compatible_links
 
     def to_neo4j(self):
         """
-        Populates Neo4j database with graph data
+        Merges a Neo4j database with graph data
         obtained from parse_children algorithm
 
         :return: Neo4j graph object, populated with nodes
@@ -325,7 +339,8 @@ class VUE4j:
 
         G = Graph()
 
-        self.neo4j_compatible_links = self.get_compatible_links()
+
+        self.neo4j_compatible_links = self.E
 
         # Node transaction
         node_tx = G.cypher.begin()
@@ -350,6 +365,15 @@ class VUE4j:
         return G
 
     def confirm_transaction(self,graph):
+        """
+        Tests whether the number of extracted data values in V, E
+        match the sizes of Neo4j nodes & relationships. Useful when
+        importing a VUE map into a new/empty Neo4j graph.
+
+        :param graph: Neo4j graph to check against
+        :return: True/False, confirming whether the
+                 graph transaction was successful
+        """
         node_records = graph.cypher.execute('MATCH (n) return n.VUE_ID order by n.VUE_ID')
         relationship_records = graph.cypher.execute('START r=rel(*) RETURN r')
 

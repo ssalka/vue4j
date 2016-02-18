@@ -12,6 +12,8 @@ To get started with VUE4j, simply add the package with your preferred installer:
 
 ```pip install vue4j```
 
+or
+
 ```easy_install vue4j```
 
 ## Usage

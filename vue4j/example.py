@@ -1,6 +1,6 @@
-from pyvue import VUE
+from vue4j import VUE4j
 
-vue = VUE('your_map.vue')
+vue = VUE4j('your_map.vue')
 
 # Get nodes by ID & title
 node_list = vue.nodes(verbose=True)
